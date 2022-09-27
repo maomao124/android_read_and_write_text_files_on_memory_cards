@@ -1,5 +1,7 @@
 package mao.android_read_and_write_text_files_on_memory_cards.entity;
 
+import java.io.Serializable;
+
 /**
  * Project name(项目名称)：android_read_and_write_text_files_on_memory_cards
  * Package(包名): mao.android_read_and_write_text_files_on_memory_cards.entity
@@ -14,7 +16,7 @@ package mao.android_read_and_write_text_files_on_memory_cards.entity;
  */
 
 
-public class Student
+public class Student implements Serializable
 {
     /**
      * id

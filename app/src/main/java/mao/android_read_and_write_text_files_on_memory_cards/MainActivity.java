@@ -5,11 +5,17 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.app.AlertDialog;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import java.io.File;
+
+import mao.android_read_and_write_text_files_on_memory_cards.entity.Student;
+import mao.android_read_and_write_text_files_on_memory_cards.io.ObjectFileIO;
 
 
 /**
@@ -109,14 +115,31 @@ public class MainActivity extends AppCompatActivity
             int age = Integer.parseInt(ageEditText.getText().toString());
             float weight = Float.parseFloat(weightEditText.getText().toString());
 
-            SharedPreferences.Editor editor = getSharedPreferences("text", MODE_PRIVATE).edit();
+//            SharedPreferences.Editor editor = getSharedPreferences("text", MODE_PRIVATE).edit();
+//
+//            editor.putLong("id", id);
+//            editor.putString("name", name);
+//            editor.putInt("age", age);
+//            editor.putFloat("weight", weight);
+//
+//            editor.commit();
 
-            editor.putLong("id", id);
-            editor.putString("name", name);
-            editor.putInt("age", age);
-            editor.putFloat("weight", weight);
 
-            editor.commit();
+            Student student = new Student(id, name, age, weight);
+            File file = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
+
+            boolean b = ObjectFileIO.write(student, file.toString() + "/test.txt");
+            if (!b)
+            {
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("异常")
+                        .setMessage("写入失败")
+                        .setPositiveButton("确定", null)
+                        .create()
+                        .show();
+                return;
+            }
+
             //异步
             //editor.apply();
 
@@ -127,7 +150,7 @@ public class MainActivity extends AppCompatActivity
             Log.e(TAG, "save: ", e);
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle("异常")
-                    .setMessage("出现异常，请检查输入\n异常内容为\n：" + e.getMessage())
+                    .setMessage("出现异常，请检查输入\n异常内容为：\n" + e.getMessage())
                     .setPositiveButton("确定", null)
                     .create()
                     .show();
@@ -141,25 +164,52 @@ public class MainActivity extends AppCompatActivity
      */
     private void load()
     {
-        SharedPreferences sharedPreferences = getSharedPreferences("text", MODE_PRIVATE);
-        long id = sharedPreferences.getLong("id", 0);
-        String name = sharedPreferences.getString("name", "");
-        int age = sharedPreferences.getInt("age", 0);
-        float weight = sharedPreferences.getFloat("weight", 0.0f);
-
-        idEditText.setText(String.valueOf(id));
-        nameEditText.setText(name);
-        ageEditText.setText(String.valueOf(age));
-        weightEditText.setText(String.valueOf(weight));
+//        SharedPreferences sharedPreferences = getSharedPreferences("text", MODE_PRIVATE);
+//        long id = sharedPreferences.getLong("id", 0);
+//        String name = sharedPreferences.getString("name", "");
+//        int age = sharedPreferences.getInt("age", 0);
+//        float weight = sharedPreferences.getFloat("weight", 0.0f);
 
 
-        String str = "学号：" + id + "\n姓名：" + name + "\n年龄：" + age + "\n体重：" + weight;
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("读取到的内容")
-                .setMessage(str)
-                .setPositiveButton("确定", null)
-                .create()
-                .show();
+        try
+        {
+            File file = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
+            Student student = ObjectFileIO.read(file.toString() + "/test.txt", Student.class);
+
+            if (student == null)
+            {
+                throw new Exception("读取失败");
+            }
+            Long id = student.getId();
+            String name = student.getName();
+            Integer age = student.getAge();
+            Float weight = student.getWeight();
+
+            idEditText.setText(String.valueOf(id));
+            nameEditText.setText(name);
+            ageEditText.setText(String.valueOf(age));
+            weightEditText.setText(String.valueOf(weight));
+
+
+            String str = "学号：" + id + "\n姓名：" + name + "\n年龄：" + age + "\n体重："
+                    + weight + "\n\n文件路径：" + file.toString() + "/test.txt";
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("读取到的内容")
+                    .setMessage(str)
+                    .setPositiveButton("确定", null)
+                    .create()
+                    .show();
+        }
+        catch (Exception e)
+        {
+            Log.e(TAG, "save: ", e);
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("异常")
+                    .setMessage("出现异常，请检查输入\n异常内容为：\n" + e.getMessage())
+                    .setPositiveButton("确定", null)
+                    .create()
+                    .show();
+        }
     }
 
     @Override
